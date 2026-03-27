@@ -1,0 +1,30 @@
+@use 'variables' as *
+
+body
+    min-height: 100vh
+    position: relative
+    font-family: $font-serif
+    color: $color-font
+    line-height: $font-line-height
+    background: $color-background
+
+.container
+    position: relative
+    width: $size-content
+    margin: 0 auto
+    padding: $size-container-margin 0
+
+header
+    position: fixed
+    top: $size-container-margin
+    left: calc($container-left - $size-side-content - $size-gap)
+    width: $size-side-content
+
+main
+    width: 100%
+
+footer
+    position: absolute
+    bottom: 0
+    left: calc($container-left - $size-side-content - $size-gap)
+    width: $size-side-content

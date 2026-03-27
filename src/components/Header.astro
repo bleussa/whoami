@@ -1,0 +1,30 @@
+---
+import { SITE } from '../config';
+
+const currentPath = Astro.url.pathname;
+
+const nav = [
+  { label: 'About', href: '/about' },
+  { label: 'Projects', href: '/projects' },
+  { label: 'Work', href: '/work' },
+  { label: 'Studies', href: '/studies' },
+  { label: 'Blog', href: '/blog' },
+];
+---
+
+<header>
+  <div class="header-title">
+    <a href="/">{SITE.TITLE}</a>
+  </div>
+  <nav>
+    <ul>
+      {nav.map(({ label, href }) => (
+        <li>
+          <a href={href} class:list={[{ active: currentPath.startsWith(href) }]}>
+            {label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+</header>

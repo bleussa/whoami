@@ -1,17 +1,16 @@
 ---
+import Images from '../components/Images.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
 
+const photos = [
+    { path: '/imageFromInternet1.jpg' },
+    { path: '/imageFromInternet2.jpg' },
+];
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout >
+    <h1>Titles are important. Bla bla bla, bla, bla bla? bla... BLA BLA BLA BL@ #*- %&!!</h1>
+    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Exercitationem minima voluptatem placeat asperiores ea iusto molestiae obcaecati at iste molestias facere suscipit sed sit, nemo neque quam quas aperiam, cum consectetur doloremque id odio. Aliquid totam unde blanditiis reiciendis magni vel vero quaerat, in itaque nemo, dicta corrupti eveniet, tempore quidem hic eligendi voluptate. Quae voluptates aspernatur corrupti minus blanditiis facere qui libero, aliquam, quas vitae nesciunt maxime? Neque sequi minima atque excepturi perferendis iure aperiam. Quod et mollitia soluta asperiores omnis ratione unde quas quis, laborum deleniti fuga, iure reprehenderit eligendi. Molestias, quae. Perferendis deserunt ducimus totam rem, veniam dolore distinctio pariatur ut ex, illo ad? Tenetur laborum ipsa illo voluptates vero nesciunt non, veritatis soluta deleniti voluptatem! Mollitia, repellendus obcaecati harum dicta inventore in sint at numquam, totam libero eligendi error eius corrupti accusamus sapiente!</p>
+    <Images images={photos} />
+    <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Praesentium ea itaque totam magnam nisi at quibusdam qui nulla quis. Impedit quam doloribus eveniet corporis minus debitis fugiat necessitatibus rerum dignissimos, quas saepe? Impedit nemo quisquam, cupiditate commodi, sunt vero aspernatur, accusantium quae libero est repellendus necessitatibus amet. Sapiente necessitatibus sit obcaecati eaque similique corrupti fugit doloribus voluptate ipsum omnis? Nisi id magnam nam numquam ad. Ut vitae neque aperiam qui hic eum in laborum voluptatibus est cumque quos, voluptatem nam illum, veritatis obcaecati id architecto necessitatibus eveniet provident! Tempora deserunt consequatur, nobis eos sit, quae unde nulla error voluptates et soluta tempore aspernatur fugit, sunt officiis omnis velit saepe cupiditate. Recusandae ipsa eaque iusto maxime labore, voluptas molestias ipsam delectus commodi ad error cupiditate a ab vero nisi? Consequuntur sequi maiores nostrum necessitatibus, blanditiis nihil cupiditate ad.</p>
+</BaseLayout>
