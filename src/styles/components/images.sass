@@ -1,0 +1,88 @@
+@use '../variables' as *
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&display=swap')
+
+.images-stage
+    position: relative
+    width: 120%
+    left: -10%
+    pointer-events: none
+
+    .photo
+        position: absolute
+        width: var(--w)
+        pointer-events: all
+        cursor: grab
+        user-select: none
+        -webkit-user-select: none
+        background: $color-font
+        padding: $space-xxs $space-xxs $space-m $space-xxs
+        border-radius: 10px
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 5px 14px rgba(0,0,0,0.1), 0 14px 36px rgba(0,0,0,0.07)
+        transition: box-shadow 0.15s ease
+        will-change: transform
+        text-decoration: none
+        display: block
+
+        &.is-dragging
+            cursor: grabbing
+            transition: none
+
+        & p
+            position: absolute
+            bottom: 0
+            left: 0
+            right: 0
+            height: $space-m
+            display: flex
+            align-items: center
+            justify-content: center
+            margin: 0
+            font-family: 'Caveat', cursive
+            font-size: 26px
+            color: $color-foreground
+            pointer-events: none
+            text-align: center
+            padding: 0 $space-xxs
+            transform: rotate(var(--title-rot, 0deg))
+
+        & img
+            width: 100%
+            height: 100%
+            object-fit: cover
+            display: block
+            pointer-events: none
+
+    .resize-handle,
+    .rotate-handle
+        position: absolute
+        width: 10px
+        height: 10px
+        pointer-events: all
+
+    .resize-handle
+        bottom: 0
+        right: 0
+        cursor: nwse-resize
+
+    .rotate-handle
+        top: 0
+        left: 0
+        cursor: move
+
+    .link-dot
+        position: absolute
+        top: 7px
+        right: 7px
+        width: 13px
+        height: 13px
+        backdrop-filter: invert(100%)
+        border-radius: 50%
+        pointer-events: all
+        transition: transform 0.2s ease
+        display: block
+        text-decoration: none
+        cursor: pointer
+
+        &:hover
+            transform: scale(1.37)
+            cursor: pointer

@@ -1,10 +1,11 @@
 ---
+import { size } from 'astro:schema';
 import Images from '../components/Images.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 
 const photos = [
-    { path: '/imageFromInternet1.jpg' },
-    { path: '/imageFromInternet2.jpg' },
+    { path: '/imageFromInternet1.jpg', title: "La montaña neeeño "},
+    { path: '/imageFromInternet2.jpg', title: "Portones del Parque San Martin", size: 50 },
 ];
 ---
 

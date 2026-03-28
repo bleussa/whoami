@@ -1,6 +1,7 @@
 ---
 interface Image {
     path: string;
+    title?: string;
     size?: number;
     link?: string;
 }
@@ -11,25 +12,31 @@ interface Props {
 
 const { images } = Astro.props;
 
-// ~15vw for a few images, never bigger than 20vw
-const DEFAULT_SIZE = Math.min(20, Math.max(8, Math.floor(60 / images.length)));
+// Distribute sizes: explicit sizes claim their %, the rest split what remains equally
+const totalExplicit = images.reduce((sum, img) => sum + (img.size ?? 0), 0);
+const withoutSize = images.filter(img => img.size === undefined).length;
+const defaultSize = withoutSize > 0 ? (110 - totalExplicit) / withoutSize : 110 / images.length;
+const computedSizes = images.map(img => img.size ?? defaultSize);
 ---
 
 <div class="images-stage">
     {
         images.map((image, index) => {
-            const size = image.size ?? DEFAULT_SIZE;
             const sign = Math.random() > 0.5 ? 1 : -1;
             const rot = (sign * (1 + Math.random() * 2)).toFixed(2);
+            const titleRot = ((Math.random() * 4) - 2).toFixed(2);
+            const titleFontSize = (1.618 * 16 * (0.8 + Math.random() * 0.4)).toFixed(1);
 
             return (
-                <div class="photo" style={`--w:${size}vw; --rot:${rot}deg;`}>
+                <div class="photo" style={`--rot:${rot}deg;`} data-size-pct={computedSizes[index].toFixed(4)}>
                     <div class="rotate-handle" />
                     <img
                         src={image.path}
                         alt={`Photo ${index + 1}`}
                         draggable="false"
                     />
+                    <p style={`--title-rot:${titleRot}deg; font-size:${titleFontSize}px;`}>{image.title}</p>
+                    {image.link && <a class="link-dot" href={image.link} target="_blank" rel="noopener noreferrer" />}
                     <div class="resize-handle" />
                 </div>
             );
@@ -37,86 +44,11 @@ const DEFAULT_SIZE = Math.min(20, Math.max(8, Math.floor(60 / images.length)));
     }
 </div>
 
-<style>
-    .images-stage {
-        position: relative;
-        width: 120%;
-        left: -10%;
-        pointer-events: none;
-    }
-
-    .photo {
-        position: absolute; /* fixed so we can place anywhere on screen */
-        width: var(--w);
-        pointer-events: all;
-        cursor: grab;
-        user-select: none;
-        -webkit-user-select: none;
-
-        /* Polaroid look */
-        box-shadow:
-            2px 3px 8px rgba(0, 0, 0, 0.22),
-            0 1px 3px rgba(0, 0, 0, 0.12);
-
-        /* Only animate shadow, NEVER transform (breaks drag offset) */
-        transition: box-shadow 0.15s ease;
-
-        will-change: transform;
-        text-decoration: none;
-        display: block;
-    }
-
-    .photo:hover {
-        box-shadow:
-            6px 10px 24px rgba(0, 0, 0, 0.32),
-            0 2px 6px rgba(0, 0, 0, 0.15);
-    }
-
-    .photo.is-dragging {
-        cursor: grabbing;
-        box-shadow:
-            14px 18px 36px rgba(0, 0, 0, 0.38),
-            0 4px 12px rgba(0, 0, 0, 0.2);
-        transition: none; /* no lag while moving */
-    }
-
-    .photo img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-        pointer-events: none;
-    }
-
-    .resize-handle,
-    .rotate-handle {
-        position: absolute;
-        width: 10px;
-        height: 10px;
-        pointer-events: all;
-    }
-
-    .resize-handle {
-        bottom: 0;
-        right: 0;
-        cursor: nwse-resize;
-    }
-
-    .rotate-handle {
-        top: 0;
-        left: 0;
-        cursor: move;
-    }
-</style>
-
 <script>
-    // Wait for images to load so offsetWidth/Height are real
     window.addEventListener("load", init);
-    // Fallback if load already fired (Astro view transitions, etc.)
     if (document.readyState === "complete") init();
 
     function init() {
-        // ── Global interaction state (shared — only one active interaction at a time) ──
         let rotating: HTMLElement | null = null;
         let rotateCX = 0;
         let rotateCY = 0;
@@ -172,16 +104,15 @@ const DEFAULT_SIZE = Math.min(20, Math.max(8, Math.floor(60 / images.length)));
             if (!photos.length) return;
 
             const cw = stage.offsetWidth;
-            const n = photos.length;
-            const slotW = cw / n;
-            const imgW = slotW * 0.9;
-            const margin = 25;
+            const margin = 40 / 1.618;
 
             // ── Pass 1: set widths and measure heights ────────────────────────
             const heights = photos.map((el) => {
-                el.style.width = imgW + "px";
-                el.dataset.baseW = String(imgW);
-                return el.offsetHeight || Math.round(imgW * 1.35);
+                const sizePct = parseFloat(el.dataset.sizePct ?? "");
+                const w = !isNaN(sizePct) ? cw * (sizePct / 100) * 0.9 : cw / photos.length * 0.9;
+                el.style.width = w + "px";
+                el.dataset.baseW = String(w);
+                return el.offsetHeight || Math.round(w * 1.35);
             });
 
             // ── Set stage height based on tallest image ───────────────────────
@@ -190,18 +121,18 @@ const DEFAULT_SIZE = Math.min(20, Math.max(8, Math.floor(60 / images.length)));
             stage.style.height = ch + "px";
 
             // ── Pass 2: scatter ───────────────────────────────────────────────
+            let cumX = 0;
             photos.forEach((el, i) => {
-                const w = imgW;
+                const sizePct = parseFloat(el.dataset.sizePct ?? "");
+                const slotW_i = !isNaN(sizePct) ? cw * (sizePct / 100) : cw / photos.length;
+                const w = el.offsetWidth;
                 const h = heights[i];
-                const jitter = (Math.random() - 0.5) * slotW * 0.16;
-                const x = Math.max(
-                    0,
-                    Math.min(cw - w, (i + 0.5) * slotW - w / 2 + jitter),
-                );
-                const y =
-                    margin + Math.random() * Math.max(0, ch - h - margin * 2);
+                const jitter = (Math.random() - 0.5) * slotW_i * 0.16;
+                const x = Math.max(0, Math.min(cw - w, cumX + slotW_i * 0.5 - w / 2 + jitter));
+                const y = margin + Math.random() * Math.max(0, ch - h - margin * 2);
                 el.dataset.baseRot = String(parseFloat(el.style.getPropertyValue("--rot") || "0"));
                 applyTransform(el, x, y);
+                cumX += slotW_i;
             });
 
             // ── Rotate handles ────────────────────────────────────────────────
@@ -272,6 +203,14 @@ const DEFAULT_SIZE = Math.min(20, Math.max(8, Math.floor(60 / images.length)));
                     },
                     { passive: false },
                 );
+            });
+
+            // ── Link dot: prevent drag from starting ─────────────────────────
+            photos.forEach((el) => {
+                const dot = el.querySelector<HTMLElement>(".link-dot");
+                if (!dot) return;
+                dot.addEventListener("mousedown", (e) => e.stopPropagation());
+                dot.addEventListener("touchstart", (e) => e.stopPropagation(), { passive: true });
             });
 
             // ── Drag ──────────────────────────────────────────────────────────

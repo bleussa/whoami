@@ -21,7 +21,7 @@ const nav = [
       {nav.map(({ label, href }) => (
         <li>
           <a href={href} class:list={[{ active: currentPath.startsWith(href) }]}>
-            {label}
+            <span class="nav-label">{label}</span>
           </a>
         </li>
       ))}
