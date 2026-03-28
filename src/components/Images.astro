@@ -16,22 +16,25 @@ const DEFAULT_SIZE = Math.min(20, Math.max(8, Math.floor(60 / images.length)));
 ---
 
 <div class="images-stage">
-    {images.map((image, index) => {
-        const size  = image.size ?? DEFAULT_SIZE;
-        const sign  = Math.random() > 0.5 ? 1 : -1;
-        const rot   = (sign * (1 + Math.random() * 2)).toFixed(2);
+    {
+        images.map((image, index) => {
+            const size = image.size ?? DEFAULT_SIZE;
+            const sign = Math.random() > 0.5 ? 1 : -1;
+            const rot = (sign * (1 + Math.random() * 2)).toFixed(2);
 
-        return (
-            <div
-                class="photo"
-                style={`--w:${size}vw; --rot:${rot}deg;`}
-            >
-                <div class="rotate-handle"></div>
-                <img src={image.path} alt={`Photo ${index + 1}`} draggable="false" />
-                <div class="resize-handle"></div>
-            </div>
-        );
-    })}
+            return (
+                <div class="photo" style={`--w:${size}vw; --rot:${rot}deg;`}>
+                    <div class="rotate-handle" />
+                    <img
+                        src={image.path}
+                        alt={`Photo ${index + 1}`}
+                        draggable="false"
+                    />
+                    <div class="resize-handle" />
+                </div>
+            );
+        })
+    }
 </div>
 
 <style>
@@ -52,11 +55,11 @@ const DEFAULT_SIZE = Math.min(20, Math.max(8, Math.floor(60 / images.length)));
 
         /* Polaroid look */
         box-shadow:
-            2px 3px 8px rgba(0,0,0,.22),
-            0 1px 3px rgba(0,0,0,.12);
+            2px 3px 8px rgba(0, 0, 0, 0.22),
+            0 1px 3px rgba(0, 0, 0, 0.12);
 
         /* Only animate shadow, NEVER transform (breaks drag offset) */
-        transition: box-shadow .15s ease;
+        transition: box-shadow 0.15s ease;
 
         will-change: transform;
         text-decoration: none;
@@ -65,15 +68,15 @@ const DEFAULT_SIZE = Math.min(20, Math.max(8, Math.floor(60 / images.length)));
 
     .photo:hover {
         box-shadow:
-            6px 10px 24px rgba(0,0,0,.32),
-            0 2px 6px rgba(0,0,0,.15);
+            6px 10px 24px rgba(0, 0, 0, 0.32),
+            0 2px 6px rgba(0, 0, 0, 0.15);
     }
 
     .photo.is-dragging {
         cursor: grabbing;
         box-shadow:
-            14px 18px 36px rgba(0,0,0,.38),
-            0 4px 12px rgba(0,0,0,.2);
+            14px 18px 36px rgba(0, 0, 0, 0.38),
+            0 4px 12px rgba(0, 0, 0, 0.2);
         transition: none; /* no lag while moving */
     }
 
@@ -85,7 +88,8 @@ const DEFAULT_SIZE = Math.min(20, Math.max(8, Math.floor(60 / images.length)));
         pointer-events: none;
     }
 
-    .resize-handle, .rotate-handle {
+    .resize-handle,
+    .rotate-handle {
         position: absolute;
         width: 10px;
         height: 10px;
@@ -107,188 +111,224 @@ const DEFAULT_SIZE = Math.min(20, Math.max(8, Math.floor(60 / images.length)));
 
 <script>
     // Wait for images to load so offsetWidth/Height are real
-    window.addEventListener('load', init);
+    window.addEventListener("load", init);
     // Fallback if load already fired (Astro view transitions, etc.)
-    if (document.readyState === 'complete') init();
+    if (document.readyState === "complete") init();
 
     function init() {
         // ── Global interaction state (shared — only one active interaction at a time) ──
-        let rotating         : HTMLElement | null = null;
-        let rotateCX         = 0;
-        let rotateCY         = 0;
+        let rotating: HTMLElement | null = null;
+        let rotateCX = 0;
+        let rotateCY = 0;
         let rotateStartAngle = 0;
-        let rotateStartRot   = 0;
+        let rotateStartRot = 0;
 
-        let resizing     : HTMLElement | null = null;
+        let resizing: HTMLElement | null = null;
         let resizeStartX = 0;
         let resizeStartW = 0;
-        let resizeBaseW  = 0;
+        let resizeBaseW = 0;
 
-        let active      : HTMLElement | null = null;
+        let active: HTMLElement | null = null;
         let startMouseX = 0;
         let startMouseY = 0;
-        let startElX    = 0;
-        let startElY    = 0;
-        let didMove     = false;
+        let startElX = 0;
+        let startElY = 0;
+        let didMove = false;
 
         function getPos(el: HTMLElement) {
             return {
-                x: parseFloat(el.dataset.x ?? '0'),
-                y: parseFloat(el.dataset.y ?? '0'),
+                x: parseFloat(el.dataset.x ?? "0"),
+                y: parseFloat(el.dataset.y ?? "0"),
             };
         }
 
         function applyTransform(el: HTMLElement, x: number, y: number) {
-            const rot = el.style.getPropertyValue('--rot') || '0deg';
+            const rot = el.style.getPropertyValue("--rot") || "0deg";
             el.style.transform = `translate(${x}px, ${y}px) rotate(${rot})`;
-            el.style.left = '0';
-            el.style.top  = '0';
-            el.dataset.x  = String(x);
-            el.dataset.y  = String(y);
+            el.style.left = "0";
+            el.style.top = "0";
+            el.dataset.x = String(x);
+            el.dataset.y = String(y);
         }
 
         function applyRotation(el: HTMLElement, deg: number) {
-            el.style.setProperty('--rot', deg + 'deg');
+            const baseRot = parseFloat(el.dataset.baseRot ?? "0");
+            const clamped = Math.max(baseRot - 7, Math.min(baseRot + 7, deg));
+            el.style.setProperty("--rot", clamped + "deg");
             const pos = getPos(el);
             applyTransform(el, pos.x, pos.y);
         }
 
         // ── Init each stage independently ────────────────────────────────────
-        const stages = Array.from(document.querySelectorAll<HTMLElement>('.images-stage'));
+        const stages = Array.from(
+            document.querySelectorAll<HTMLElement>(".images-stage"),
+        );
         if (!stages.length) return;
 
         stages.forEach((stage) => {
-            const photos = Array.from(stage.querySelectorAll<HTMLElement>('.photo'));
+            const photos = Array.from(
+                stage.querySelectorAll<HTMLElement>(".photo"),
+            );
             if (!photos.length) return;
 
-            const cw     = stage.offsetWidth;
-            const n      = photos.length;
-            const slotW  = cw / n;
-            const imgW   = slotW * 0.9;
+            const cw = stage.offsetWidth;
+            const n = photos.length;
+            const slotW = cw / n;
+            const imgW = slotW * 0.9;
             const margin = 25;
 
             // ── Pass 1: set widths and measure heights ────────────────────────
             const heights = photos.map((el) => {
-                el.style.width   = imgW + 'px';
+                el.style.width = imgW + "px";
                 el.dataset.baseW = String(imgW);
                 return el.offsetHeight || Math.round(imgW * 1.35);
             });
 
             // ── Set stage height based on tallest image ───────────────────────
             const maxH = Math.max(...heights);
-            const ch   = maxH + margin * 2;
-            stage.style.height = ch + 'px';
+            const ch = maxH + margin * 2;
+            stage.style.height = ch + "px";
 
             // ── Pass 2: scatter ───────────────────────────────────────────────
             photos.forEach((el, i) => {
-                const w      = imgW;
-                const h      = heights[i];
+                const w = imgW;
+                const h = heights[i];
                 const jitter = (Math.random() - 0.5) * slotW * 0.16;
-                const x      = Math.max(0, Math.min(cw - w, (i + 0.5) * slotW - w / 2 + jitter));
-                const y      = margin + Math.random() * Math.max(0, ch - h - margin * 2);
+                const x = Math.max(
+                    0,
+                    Math.min(cw - w, (i + 0.5) * slotW - w / 2 + jitter),
+                );
+                const y =
+                    margin + Math.random() * Math.max(0, ch - h - margin * 2);
+                el.dataset.baseRot = String(parseFloat(el.style.getPropertyValue("--rot") || "0"));
                 applyTransform(el, x, y);
             });
 
             // ── Rotate handles ────────────────────────────────────────────────
             photos.forEach((el) => {
-                const handle = el.querySelector<HTMLElement>('.rotate-handle');
+                const handle = el.querySelector<HTMLElement>(".rotate-handle");
                 if (!handle) return;
 
                 const startRotate = (clientX: number, clientY: number) => {
-                    const rect       = el.getBoundingClientRect();
-                    rotateCX         = rect.left + rect.width  / 2;
-                    rotateCY         = rect.top  + rect.height / 2;
-                    rotateStartAngle = Math.atan2(clientY - rotateCY, clientX - rotateCX);
-                    rotateStartRot   = parseFloat(el.style.getPropertyValue('--rot') || '0');
-                    rotating         = el;
+                    const rect = el.getBoundingClientRect();
+                    rotateCX = rect.left + rect.width / 2;
+                    rotateCY = rect.top + rect.height / 2;
+                    rotateStartAngle = Math.atan2(
+                        clientY - rotateCY,
+                        clientX - rotateCX,
+                    );
+                    rotateStartRot = parseFloat(
+                        el.style.getPropertyValue("--rot") || "0",
+                    );
+                    rotating = el;
                 };
 
-                handle.addEventListener('mousedown', (e: MouseEvent) => {
+                handle.addEventListener("mousedown", (e: MouseEvent) => {
                     e.stopPropagation();
                     e.preventDefault();
                     startRotate(e.clientX, e.clientY);
                 });
 
-                handle.addEventListener('touchstart', (e: TouchEvent) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    const t = e.touches[0];
-                    startRotate(t.clientX, t.clientY);
-                }, { passive: false });
+                handle.addEventListener(
+                    "touchstart",
+                    (e: TouchEvent) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        const t = e.touches[0];
+                        startRotate(t.clientX, t.clientY);
+                    },
+                    { passive: false },
+                );
             });
 
             // ── Resize handles ────────────────────────────────────────────────
             photos.forEach((el) => {
-                const handle = el.querySelector<HTMLElement>('.resize-handle');
+                const handle = el.querySelector<HTMLElement>(".resize-handle");
                 if (!handle) return;
 
-                handle.addEventListener('mousedown', (e: MouseEvent) => {
+                handle.addEventListener("mousedown", (e: MouseEvent) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    resizing     = el;
+                    resizing = el;
                     resizeStartX = e.clientX;
                     resizeStartW = el.offsetWidth;
-                    resizeBaseW  = parseFloat(el.dataset.baseW ?? String(el.offsetWidth));
+                    resizeBaseW = parseFloat(
+                        el.dataset.baseW ?? String(el.offsetWidth),
+                    );
                 });
 
-                handle.addEventListener('touchstart', (e: TouchEvent) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    const t      = e.touches[0];
-                    resizing     = el;
-                    resizeStartX = t.clientX;
-                    resizeStartW = el.offsetWidth;
-                    resizeBaseW  = parseFloat(el.dataset.baseW ?? String(el.offsetWidth));
-                }, { passive: false });
+                handle.addEventListener(
+                    "touchstart",
+                    (e: TouchEvent) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        const t = e.touches[0];
+                        resizing = el;
+                        resizeStartX = t.clientX;
+                        resizeStartW = el.offsetWidth;
+                        resizeBaseW = parseFloat(
+                            el.dataset.baseW ?? String(el.offsetWidth),
+                        );
+                    },
+                    { passive: false },
+                );
             });
 
             // ── Drag ──────────────────────────────────────────────────────────
             photos.forEach((el) => {
-                if (el.tagName === 'A') {
-                    el.addEventListener('click', (e) => e.preventDefault());
+                if (el.tagName === "A") {
+                    el.addEventListener("click", (e) => e.preventDefault());
                 }
 
-                el.addEventListener('mousedown', (e: MouseEvent) => {
+                el.addEventListener("mousedown", (e: MouseEvent) => {
                     if (e.button !== 0) return;
                     e.preventDefault();
-                    active      = el;
-                    didMove     = false;
+                    active = el;
+                    didMove = false;
                     startMouseX = e.clientX;
                     startMouseY = e.clientY;
-                    const pos   = getPos(el);
-                    startElX    = pos.x;
-                    startElY    = pos.y;
-                    el.classList.add('is-dragging');
+                    const pos = getPos(el);
+                    startElX = pos.x;
+                    startElY = pos.y;
+                    el.classList.add("is-dragging");
                 });
 
-                el.addEventListener('touchstart', (e: TouchEvent) => {
-                    e.preventDefault();
-                    const t     = e.touches[0];
-                    active      = el;
-                    didMove     = false;
-                    startMouseX = t.clientX;
-                    startMouseY = t.clientY;
-                    const pos   = getPos(el);
-                    startElX    = pos.x;
-                    startElY    = pos.y;
-                    el.classList.add('is-dragging');
-                }, { passive: false });
+                el.addEventListener(
+                    "touchstart",
+                    (e: TouchEvent) => {
+                        e.preventDefault();
+                        const t = e.touches[0];
+                        active = el;
+                        didMove = false;
+                        startMouseX = t.clientX;
+                        startMouseY = t.clientY;
+                        const pos = getPos(el);
+                        startElX = pos.x;
+                        startElY = pos.y;
+                        el.classList.add("is-dragging");
+                    },
+                    { passive: false },
+                );
             });
         });
 
         // ── Global move / end handlers (shared across all stages) ────────────
-        window.addEventListener('mousemove', (e: MouseEvent) => {
+        window.addEventListener("mousemove", (e: MouseEvent) => {
             if (rotating) {
-                const angle = Math.atan2(e.clientY - rotateCY, e.clientX - rotateCX);
+                const angle = Math.atan2(
+                    e.clientY - rotateCY,
+                    e.clientX - rotateCX,
+                );
                 const delta = (angle - rotateStartAngle) * (180 / Math.PI);
                 applyRotation(rotating, rotateStartRot + delta);
                 return;
             }
             if (resizing) {
-                const dx  = e.clientX - resizeStartX;
+                const dx = e.clientX - resizeStartX;
                 const min = resizeBaseW * 0.75;
-                const max = resizeBaseW * 2;
-                resizing.style.width = Math.max(min, Math.min(max, resizeStartW + dx)) + 'px';
+                const max = resizeBaseW * 1.25;
+                resizing.style.width =
+                    Math.max(min, Math.min(max, resizeStartW + dx)) + "px";
                 return;
             }
             if (!active) return;
@@ -298,46 +338,66 @@ const DEFAULT_SIZE = Math.min(20, Math.max(8, Math.floor(60 / images.length)));
             applyTransform(active, startElX + dx, startElY + dy);
         });
 
-        window.addEventListener('mouseup', () => {
-            if (rotating) { rotating = null; return; }
-            if (resizing) { resizing = null; return; }
-            if (!active) return;
-            active.classList.remove('is-dragging');
-            active  = null;
-            didMove = false;
-        });
-
-        window.addEventListener('touchmove', (e: TouchEvent) => {
-            const t = e.touches[0];
+        window.addEventListener("mouseup", () => {
             if (rotating) {
-                e.preventDefault();
-                const angle = Math.atan2(t.clientY - rotateCY, t.clientX - rotateCX);
-                const delta = (angle - rotateStartAngle) * (180 / Math.PI);
-                applyRotation(rotating, rotateStartRot + delta);
+                rotating = null;
                 return;
             }
             if (resizing) {
-                e.preventDefault();
-                const dx  = t.clientX - resizeStartX;
-                const min = resizeBaseW * 0.75;
-                const max = resizeBaseW * 2;
-                resizing.style.width = Math.max(min, Math.min(max, resizeStartW + dx)) + 'px';
+                resizing = null;
                 return;
             }
             if (!active) return;
-            e.preventDefault();
-            const dx = t.clientX - startMouseX;
-            const dy = t.clientY - startMouseY;
-            if (Math.abs(dx) > 3 || Math.abs(dy) > 3) didMove = true;
-            applyTransform(active, startElX + dx, startElY + dy);
-        }, { passive: false });
+            active.classList.remove("is-dragging");
+            active = null;
+            didMove = false;
+        });
 
-        window.addEventListener('touchend', () => {
-            if (rotating) { rotating = null; return; }
-            if (resizing) { resizing = null; return; }
+        window.addEventListener(
+            "touchmove",
+            (e: TouchEvent) => {
+                const t = e.touches[0];
+                if (rotating) {
+                    e.preventDefault();
+                    const angle = Math.atan2(
+                        t.clientY - rotateCY,
+                        t.clientX - rotateCX,
+                    );
+                    const delta = (angle - rotateStartAngle) * (180 / Math.PI);
+                    applyRotation(rotating, rotateStartRot + delta);
+                    return;
+                }
+                if (resizing) {
+                    e.preventDefault();
+                    const dx = t.clientX - resizeStartX;
+                    const min = resizeBaseW * 0.75;
+                    const max = resizeBaseW * 1.25;
+                    resizing.style.width =
+                        Math.max(min, Math.min(max, resizeStartW + dx)) + "px";
+                    return;
+                }
+                if (!active) return;
+                e.preventDefault();
+                const dx = t.clientX - startMouseX;
+                const dy = t.clientY - startMouseY;
+                if (Math.abs(dx) > 3 || Math.abs(dy) > 3) didMove = true;
+                applyTransform(active, startElX + dx, startElY + dy);
+            },
+            { passive: false },
+        );
+
+        window.addEventListener("touchend", () => {
+            if (rotating) {
+                rotating = null;
+                return;
+            }
+            if (resizing) {
+                resizing = null;
+                return;
+            }
             if (!active) return;
-            active.classList.remove('is-dragging');
-            active  = null;
+            active.classList.remove("is-dragging");
+            active = null;
             didMove = false;
         });
     }
