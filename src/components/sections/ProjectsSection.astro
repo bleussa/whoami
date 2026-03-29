@@ -1,0 +1,16 @@
+---
+import { useTranslations } from "../../i18n";
+import type { Lang } from "../../i18n";
+
+interface Props {
+    lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<section id="projects">
+    <h1>{t('section.projects.title')}</h1>
+    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Minus quam tempore quas. Tenetur cumque provident tempore natus fugiat, laudantium soluta suscipit voluptate inventore unde quam quasi rerum id sapiente dolor culpa.</p>
+</section>

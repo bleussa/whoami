@@ -32,7 +32,7 @@ const computedSizes = images.map(img => img.size ?? defaultSize);
                     <div class="rotate-handle" />
                     <img
                         src={image.path}
-                        alt={`Photo ${index + 1}`}
+                        alt={`${index + 1}`}
                         draggable="false"
                     />
                     <p style={`--title-rot:${titleRot}deg; font-size:${titleFontSize}px;`}>{image.title}</p>

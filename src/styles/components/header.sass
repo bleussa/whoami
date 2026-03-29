@@ -15,7 +15,7 @@ header
     flex-direction: column
     align-items: flex-end
     font-family: $font-sans
-    gap: $space-xxxxs
+    gap: $space-xxxs
 
     .header-title
         padding: 0
@@ -47,12 +47,12 @@ header
             &:hover
                 opacity: 1 !important
                 background: rgba($color-font, .13)
-                padding: $space-xxxxs $space-xxs $space-xxxxs $space-s
+                padding: $space-xxxs $space-xxs $space-xxxs $space-s
 
                 &::before
                     right: calc(100% - #{$space-s} / 2 - 3.5px)
 
-        // Color del punto solo al hacer hover en el item concreto
+        // Color del punto al hacer hover en el item concreto
         li:nth-child(1) a:hover::before
             background: $color-green
 
@@ -68,6 +68,30 @@ header
         li:nth-child(5) a:hover::before
             background: $color-violet
 
+        // Item activo: punto visible en posicion interior con su color
+        nav ul li a.active
+            opacity: 1 !important
+            padding: $space-xxxs $space-xxs $space-xxxs $space-s
+
+            &::before
+                right: calc(100% - #{$space-s} / 2 - 3.5px)
+                width: 7px
+
+        li:nth-child(1) a.active::before
+            background: $color-green
+
+        li:nth-child(2) a.active::before
+            background: $color-blue
+
+        li:nth-child(3) a.active::before
+            background: $color-orange
+
+        li:nth-child(4) a.active::before
+            background: $color-yellow
+
+        li:nth-child(5) a.active::before
+            background: $color-violet
+
     nav
         width: 100%
         transition: $animation-transition-ease
@@ -81,7 +105,7 @@ header
 
         li a
             display: block
-            padding: $space-xxxxs 0
+            padding: $space-xxxs 0
             opacity: .13
             text-decoration: none
             color: transparent
@@ -105,3 +129,19 @@ header
                 background: $color-font
                 border-radius: 2px
                 transition: width $animation-duration ease, right $animation-duration ease, background $animation-duration ease
+
+    // Estado normal activo: linea completa con color del item
+    li:nth-child(1) a.active::before
+        background: $color-green
+
+    li:nth-child(2) a.active::before
+        background: $color-blue
+
+    li:nth-child(3) a.active::before
+        background: $color-orange
+
+    li:nth-child(4) a.active::before
+        background: $color-yellow
+
+    li:nth-child(5) a.active::before
+        background: $color-violet

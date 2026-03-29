@@ -1,30 +1,53 @@
 ---
 import { SITE } from '../config';
+import { useTranslations } from '../i18n';
+import type { Lang } from '../i18n';
 
-const currentPath = Astro.url.pathname;
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
 
 const nav = [
-  { label: 'About', href: '/about' },
-  { label: 'Projects', href: '/projects' },
-  { label: 'Work', href: '/work' },
-  { label: 'Studies', href: '/studies' },
-  { label: 'Blog', href: '/blog' },
+  { label: t('nav.about'),    href: '#about' },
+  { label: t('nav.projects'), href: '#projects' },
+  { label: t('nav.work'),     href: '#work' },
+  { label: t('nav.studies'),  href: '#studies' },
+  { label: t('nav.blog'),     href: '#blog' },
 ];
+
+const switchUrl   = lang === 'es' ? '/en/' : '/';
+const switchLabel = lang === 'es' ? 'EN' : 'ES';
 ---
 
 <header>
   <div class="header-title">
-    <a href="/">{SITE.TITLE}</a>
+    <a href={lang === 'es' ? '/' : '/en/'}>{SITE.TITLE}</a>
   </div>
   <nav>
     <ul>
       {nav.map(({ label, href }) => (
         <li>
-          <a href={href} class:list={[{ active: currentPath.startsWith(href) }]}>
+          <a href={href}>
             <span class="nav-label">{label}</span>
           </a>
         </li>
       ))}
     </ul>
   </nav>
+  <a href={switchUrl} class="lang-switch">{switchLabel}</a>
 </header>
+
+<script>
+  document.querySelectorAll('nav a[href^="#"]').forEach(link => {
+    const section = document.getElementById(link.getAttribute('href')!.slice(1));
+    if (!section) return;
+
+    new IntersectionObserver(
+      ([entry]) => link.classList.toggle('active', entry.isIntersecting),
+      { threshold: 0.2 }
+    ).observe(section);
+  });
+</script>

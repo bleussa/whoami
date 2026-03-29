@@ -4,27 +4,34 @@ import Footer from '../components/Footer.astro';
 
 import '../styles/global.sass';
 import { SITE } from '../config';
+import type { Lang } from '../i18n';
+
+interface Props {
+    lang: Lang;
+}
+
+const { lang } = Astro.props;
 ---
 
 <!DOCTYPE html>
-<!-- 
-       _                        
-       \`*-.                    
-        )  _`-.                 
-       .  : `. .                
-       : _   '  \ qué              
-       ; *` _.   `*-._ estas          
-       `-.-'          `-. haciendo       
-         ;       `       `. por     
-         :.       .        \ acá?    
-         . \  .   :   .-'   .   
-         '  `+.;  ;  '      :   
-         :  '  |    ;       ;-. 
+<!--
+       _
+       \`*-.
+        )  _`-.
+       .  : `. .
+       : _   '  \ qué
+       ; *` _.   `*-._ estas
+       `-.-'          `-. haciendo
+         ;       `       `. por
+         :.       .        \ acá?
+         . \  .   :   .-'   .
+         '  `+.;  ;  '      :
+         :  '  |    ;       ;-.
          ; '   : :`-:     _.`* ;
-      .*' /  .*' ; .*`- +'  `*' 
+      .*' /  .*' ; .*`- +'  `*'
       `*-*   `*-*  `*-*'
 -->
-<html lang="en">
+<html lang={lang}>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,7 +40,7 @@ import { SITE } from '../config';
 </head>
 <body>
     <div class="container">
-        <Header />
+        <Header lang={lang} />
         <main><slot /></main>
     </div>
     <Footer />

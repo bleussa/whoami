@@ -1,0 +1,27 @@
+---
+import { getCollection } from "astro:content";
+import { useTranslations } from "../../i18n";
+import type { Lang } from "../../i18n";
+
+interface Props {
+    lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const posts = await getCollection(lang === 'es' ? 'blog-es' : 'blog-en');
+const sorted = posts.sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+---
+
+<section id="blog">
+    <h1>{t('section.blog.title')}</h1>
+    {sorted.map((post) => (
+        <article>
+            <h3>{post.data.title}</h3>
+            <p>{post.data.description}</p>
+        </article>
+    ))}
+</section>

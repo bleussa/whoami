@@ -1,0 +1,27 @@
+---
+import { getCollection } from "astro:content";
+import { useTranslations } from "../../i18n";
+import type { Lang } from "../../i18n";
+
+interface Props {
+    lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const jobs = await getCollection(lang === 'es' ? 'work-es' : 'work-en');
+const sorted = jobs.sort(
+  (a, b) => b.data.startDate.getTime() - a.data.startDate.getTime()
+);
+---
+
+<section id="work">
+    <h1>{t('section.work.title')}</h1>
+    {sorted.map((job) => (
+        <article>
+            <h3>{job.data.role}</h3>
+            <span>{job.data.company}</span>
+        </article>
+    ))}
+</section>
